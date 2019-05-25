@@ -6,6 +6,7 @@ import android.location.Geocoder;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -50,6 +51,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                Toast.makeText(MapsActivity.this, getAddress(MapsActivity.this, latLng.latitude, latLng.longitude), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     public static String getAddress(
@@ -58,25 +66,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> addresses;
 
-
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
         }
         catch (IOException e) {
-            return "STOP 0x0000";
+            return "エラーが発生しました";
         }
 
-//        for (Address address : addresses) {
-//            int idx = address.getMaxAddressLineIndex();     //縺薙％縺翫°縺励＞縲・
-//            // 1逡ｪ逶ｮ縺ｮ繝ｬ繧ｳ繝ｼ繝峨・蝗ｽ蜷阪・縺溘ａ逵∫払
-//            for (int i = 1; i <= idx; i++) {
-//                result.append(address.getAddressLine(i));
-//            }
-//        }
-//        return result.toString();
-        Log.d("国名", "国名　:" + addresses.toString());
+        Log.d("県名", "県名　:" + addresses.toString());
         try {
-            return 	addresses.get(0).getCountryName();
+            return 	addresses.get(0).getAdminArea();
         }
         catch (Exception e){
             return "表示できません";
