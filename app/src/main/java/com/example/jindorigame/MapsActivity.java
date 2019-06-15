@@ -23,8 +23,8 @@ import java.util.Locale;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private AreaList area;
 
-    List<String> area = new ArrayList<String>();
     int aNumber;    //取得した都道府県の番号
 
     @Override
@@ -35,7 +35,78 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+    }
 
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        // Add a marker in Sydney and move the camera
+        LatLng sydney = new LatLng(-34, 151);
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+//        Toast.makeText(MapsActivity.this, );
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+//                Toast.makeText(MapsActivity.this, getAddress(MapsActivity.this, latLng.latitude, latLng.longitude), Toast.LENGTH_SHORT).show();
+                String nowArea = getAddress(MapsActivity.this, latLng.latitude, latLng.longitude);
+
+                aNumber = area.getAreaNumber(nowArea);
+//                Toast.makeText(MapsActivity.this, String.valueOf(aNumber), Toast.LENGTH_SHORT).show();
+
+                Log.d("データ", "番号" + String.valueOf(aNumber));
+
+                Toast.makeText(MapsActivity.this, String.valueOf(aNumber), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public static String getAddress(
+            Context context, double latitude, double longitude) {
+
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+        List<Address> addresses;
+
+        try {
+            addresses = geocoder.getFromLocation(latitude, longitude, 1);
+        }
+        catch (IOException e) {
+            return "エラーが発生しました";
+        }
+
+        Log.d("県名", "県名　:" + addresses.toString());
+        try {
+            return 	addresses.get(0).getAdminArea();
+        }
+        catch (Exception e){
+            return "表示できません";
+        }
+    }
+}
+
+class AreaList {
+    ArrayList<String> area = new ArrayList<>(); //県のデータ(リスト)
+    ArrayList<ArrayList<String>> near = new ArrayList<>();  //隣接する県のデータ(リストのリスト)
+
+    public AreaList(){
+        for (int i = 0; i < 47; i++) {
+            near.add(new ArrayList<String>());
+        }
+
+        //都道府県のデータ
         area.add("北海道");
         area.add("青森県");
         area.add("岩手県");
@@ -83,66 +154,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         area.add("宮崎県");
         area.add("鹿児島県");
         area.add("沖縄県");
+        //隣接する都道府県のデータ
+
     }
 
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
-//        Toast.makeText(MapsActivity.this, );
-
-        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-            @Override
-            public void onMapLongClick(LatLng latLng) {
-//                Toast.makeText(MapsActivity.this, getAddress(MapsActivity.this, latLng.latitude, latLng.longitude), Toast.LENGTH_SHORT).show();
-                aNumber = getAreaNumber(getAddress(MapsActivity.this, latLng.latitude, latLng.longitude));
-                Toast.makeText(MapsActivity.this, String.valueOf(aNumber), Toast.LENGTH_SHORT).show();
-            }
-        });
+    public void getAreaString(int num){   //都道府県の名前の取得
+        return;
     }
 
-    public static String getAddress(
-            Context context, double latitude, double longitude) {
-
-        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
-        List<Address> addresses;
-
-        try {
-            addresses = geocoder.getFromLocation(latitude, longitude, 1);
-        }
-        catch (IOException e) {
-            return "エラーが発生しました";
-        }
-
-        Log.d("県名", "県名　:" + addresses.toString());
-        try {
-            return 	addresses.get(0).getAdminArea();
-        }
-        catch (Exception e){
-            return "表示できません";
-        }
-    }
-
-    public int getAreaNumber(String str){
+    public int getAreaNumber(String str){   //都道府県の番号を取得
         if (area.contains(str) == false){
             return -1;
         }
 
-        return area.indexOf(str) + 1;
+        return area.indexOf(str);
     }
 }
